@@ -38,6 +38,7 @@ class SavedData {
   }
 
   bool areSoundsOn() {
+    if (!_initialized) return true;
     return _prefs.getBool('SFX') ?? true;
   }
 
@@ -47,6 +48,7 @@ class SavedData {
   }
 
   bool isHardModeOn() {
+    if (!_initialized) return false;
     return _prefs.getBool('HARD_MODE') ?? false;
   }
 
@@ -66,6 +68,9 @@ class SavedData {
   }
 
   Map<String, int> getStats() {
+    if (!_initialized) {
+      return {'N_GAMES': 0, 'N_WON': 0};
+    }
     return {
       'N_GAMES': _prefs.getInt('N_GAMES') ?? 0,
       'N_WON': _prefs.getInt('N_WON') ?? 0,
@@ -73,6 +78,7 @@ class SavedData {
   }
 
   int getLanguage() {
+    if (!_initialized) return 0;
     return _prefs.getInt('LANGUAGE') ?? 0;
   }
 
@@ -87,6 +93,7 @@ class SavedData {
   }
 
   int getStreak() {
+    if (!_initialized) return 0;
     return _prefs.getInt('STREAK') ?? 0;
   }
 
@@ -101,10 +108,12 @@ class SavedData {
   }
 
   int getFastestTime() {
+    if (!_initialized) return 0;
     return _prefs.getInt('TIME') ?? 0;
   }
 
   int getStarsAvailable() {
+    if (!_initialized) return maxStars;
     return _prefs.getInt('STARS') ?? maxStars;
   }
 

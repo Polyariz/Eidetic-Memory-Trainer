@@ -16,29 +16,14 @@
 
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/services.dart';
 import '../models/saved_data.dart';
-import 'dart:math';
 
 class Speaker {
   final FlutterTts _tts = FlutterTts();
   final AudioPlayer _audioPlayer = AudioPlayer();
   final SavedData data;
   bool _ttsReady = false;
-
-  // DTMF tone frequencies mapping (approximation)
-  static const Map<int, List<int>> _dtmfFrequencies = {
-    0: [941, 1336], // TONE_DTMF_0
-    1: [697, 1209], // TONE_DTMF_1
-    2: [697, 1336], // TONE_DTMF_2
-    3: [697, 1477], // TONE_DTMF_3
-    4: [770, 1209], // TONE_DTMF_4
-    5: [770, 1336], // TONE_DTMF_5
-    6: [770, 1477], // TONE_DTMF_6
-    7: [852, 1209], // TONE_DTMF_7
-    8: [852, 1336], // TONE_DTMF_8
-    9: [852, 1477], // TONE_DTMF_9
-    10: [697, 1633], // TONE_DTMF_A (used for win sound)
-  };
 
   Speaker(this.data) {
     _initializeTts();
@@ -72,23 +57,27 @@ class Speaker {
       return;
     }
 
-    // For Flutter, we'll simulate DTMF tones with beep sounds
-    // In a production app, you might want to use actual DTMF audio files
-    // or generate tones programmatically using a package like flutter_beep
-
     try {
-      // Play a simple beep sound using system sounds
-      // Note: This is a simplified version. For actual DTMF tones,
-      // you would need audio files or a tone generator package
-      final duration = isLong ? 200 : 75;
+      // Play system click sound for button feedback
+      // On Android/iOS this will produce a short tactile feedback sound
+      await SystemSound.play(SystemSoundType.click);
 
-      // Use a simple approach: different pitches for different numbers
-      // In a real implementation, you would use proper DTMF audio files
-      // or generate tones with the correct frequencies
+      // Add haptic feedback for better user experience
+      await HapticFeedback.lightImpact();
 
-      // For now, we'll just acknowledge the call without actual sound
-      // In production, add DTMF audio files to assets and play them
-      await Future.delayed(Duration(milliseconds: duration));
+      // If it's a long tone (win/error), play alert sound instead
+      if (isLong) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (tone == 10) {
+          // Win sound - double click
+          await SystemSound.play(SystemSoundType.click);
+          await Future.delayed(const Duration(milliseconds: 50));
+          await SystemSound.play(SystemSoundType.click);
+        } else {
+          // Error sound - alert
+          await SystemSound.play(SystemSoundType.alert);
+        }
+      }
     } catch (e) {
       // Silently fail if audio playback is not available
     }
@@ -100,8 +89,9 @@ class Speaker {
     }
 
     try {
-      // Play error tone (short low beep)
-      await Future.delayed(const Duration(milliseconds: 30));
+      // Play system alert sound for errors
+      await SystemSound.play(SystemSoundType.alert);
+      await HapticFeedback.mediumImpact();
     } catch (e) {
       // Silently fail
     }

@@ -45,6 +45,7 @@ class _GameScreenState extends State<GameScreen> {
   int expectedNumber = 1;
   late SavedData data;
   late Speaker speaker;
+  bool _isInitialized = false;
 
   DateTime? startTime;
   String additionalSpeech = '';
@@ -70,6 +71,9 @@ class _GameScreenState extends State<GameScreen> {
   Future<void> _initializeGame() async {
     await data.init();
     speaker = Speaker(data);
+    setState(() {
+      _isInitialized = true;
+    });
     resetGrid();
   }
 
@@ -333,6 +337,18 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading screen while initializing
+    if (!_isInitialized) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF121212),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFF5AA1E6),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
